@@ -62,8 +62,6 @@ def get_stock_price(ticker, timeframe, period):
     url = r'https://fchart.stock.naver.com/sise.nhn?symbol={tk}&timeframe={tf}&count={p}&requestType=0'.format(tk=ticker, tf=timeframe, p=period)
     print("processing: ", url)
     price_data = try_urlopen(url)
-    #resp = try_urlopen(url)
-    #price_data = resp.read()
     soup = bs(price_data)    
     item_list = soup.find_all('item')
     
@@ -127,13 +125,43 @@ def get_global_indexes():
               .rename(columns={'xymd': 'tdate', 'symb': 'ticker', 'clos': 'close', 'gvol': 'volume'}))
         df_list.append(df)
 
+    df_market_global = pd.concat(df_list)
     e = time.time()
     minute, second = divmod((e - s), 60)
     second = round(second, 0)
     print(f'crawl cost: {minute} min {second} sec')
     print('number of stocks: ', len(df_list))
-    print('number of records: ', len(df_concat))
-    
-    df_market_global = pd.concat(df_list)    
+    print('number of records: ', len(df_market_global))  
     
     return df_market_global
+
+
+def get_af_price(ticker):
+    url = f'https://finance.naver.com/fund/fundDailyQuoteList.nhn?fundCd={ticker}&page='
+    print("processing: ", ticker)
+       
+    column_select = ['날짜', '기준가', '설정액 (억)', '순 자산액(억)']
+    df_list = []
+
+    for i in range(1, 3):
+        url_ = url + str(i) 
+        resp = try_urlopen(url_)
+        df_price = pd.read_html(resp)[0]
+        df_price = df_price.dropna()
+        df_price = df_price.loc[:, column_select]
+
+        df_list.append(df_price)  
+
+        if len(df_price) < 10:
+                break
+
+    df = pd.concat(df_list)
+    df = (df
+          .rename(columns={'날짜': 'tdate',
+                           '기준가': 'close',
+                           '설정액 (억)': 'cum_invest',
+                           '순 자산액(억)': 'eval_total'}))
+    df['tdate'] = [t.replace('.', '') for t in df['tdate']]
+    print("crawl completed: ", ticker)   
+
+    return df
