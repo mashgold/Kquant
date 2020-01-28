@@ -73,10 +73,11 @@ def get_stock_price(ticker, timeframe, period):
     return df_price
 
 
-def get_indexes():
+def get_kr_indexes():
     ticker_list_market = ['KOSPI', 'KOSDAQ']
     df_list = []
 
+    s = time.time()
     for ticker in ticker_list_market:
         df = get_stock_price(ticker, 'day', 10000)
         df_list.append(df)
@@ -84,6 +85,13 @@ def get_indexes():
     df_market = pd.concat(df_list)
     columns_select = ['ticker', 'tdate', 'open', 'high', 'low','close', 'volume']
     df_market = df_market.loc[:, columns_select]
+
+    e = time.time()
+    minute, second = divmod((e - s), 60)
+    minute, second = int(minute), int(round(second, 0))
+    print(f'crawl cost: {minute} min {second} sec')
+    print('number of stocks: ', len(df_list))
+    print('get_kr_indexes completed \n')
     
     return df_market
 
@@ -128,10 +136,11 @@ def get_global_indexes():
     df_market_global = pd.concat(df_list)
     e = time.time()
     minute, second = divmod((e - s), 60)
-    second = round(second, 0)
+    minute, second = int(minute), int(round(second, 0))
     print(f'crawl cost: {minute} min {second} sec')
     print('number of stocks: ', len(df_list))
-    print('number of records: ', len(df_market_global))  
+    print('number of records: ', len(df_market_global))
+    print('get_global_indexes completed \n')
     
     return df_market_global
 
