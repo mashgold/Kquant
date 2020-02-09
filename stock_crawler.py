@@ -355,7 +355,7 @@ def get_af_price(ticker):
 	column_select = ['날짜', '기준가', '설정액 (억)', '순 자산액(억)']
 	df_list = []
 
-	for i in range(1, 3):
+	for i in range(1, 501):
 		url_ = url + str(i) 
 		resp = try_urlopen(url_)
 		df_price = pd.read_html(resp)[0]
@@ -363,10 +363,7 @@ def get_af_price(ticker):
 		df_price = df_price.loc[:, column_select]
 
 		df_list.append(df_price)  
-
-		if len(df_price) < 10:
-				break
-
+		
 	df = pd.concat(df_list)
 	df = (df
 		  .rename(columns={'날짜': 'tdate',
