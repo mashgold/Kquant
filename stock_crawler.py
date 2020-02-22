@@ -348,20 +348,20 @@ def get_global_indexes():
 	return df_market_global
 
 
-def get_af_price(ticker):
+def get_af_price(ticker, n_months):
 	url = f'https://finance.naver.com/fund/fundDailyQuoteList.nhn?fundCd={ticker}&page='
 	print("processing: ", ticker)
-	   
+	
 	column_select = ['날짜', '기준가', '설정액 (억)', '순 자산액(억)']
 	df_list = []
+	n_pages = (n_months*2) + 10
 
-	for i in range(1, 501):
+	for i in range(1, n_pages):
 		url_ = url + str(i) 
 		resp = try_urlopen(url_)
 		df_price = pd.read_html(resp)[0]
 		df_price = df_price.dropna()
 		df_price = df_price.loc[:, column_select]
-
 		df_list.append(df_price)  
 		
 	df = pd.concat(df_list)
@@ -371,6 +371,44 @@ def get_af_price(ticker):
 						   '설정액 (억)': 'cum_invest',
 						   '순 자산액(억)': 'eval_total'}))
 	df['tdate'] = [t.replace('.', '') for t in df['tdate']]
-	print("crawl completed: ", ticker)   
+	df['ticker'] = ticker
+	print("crawl completed: ", ticker)
 
 	return df
+
+
+def get_af_ticker():
+    url = r'https://finance.naver.com/fund/fundFinderList.nhn?search=&sortOrder=&page='
+    date_list = []
+    ticker_list = []
+
+    for i in range(1, 401):
+        url_ = url + str(i)
+        resp = try_urlopen(url_)
+        soup = bs(resp.read(), features="lxml")
+
+        tbodys = soup.find_all('tbody')
+        d_list = []
+        for i in range(1, len(tbodys)):
+            d = tbodys[i].text.replace('\n', '').split('설정일')[1].split('유형')[0]
+            d_list.append(d)
+
+        if len(d_list) > 0:
+            date_list.extend(d_list)
+            link_list = [a['href'] for a in soup.find_all('a', href=True) if a.text]
+            link_list = [l.split('=')[1] for l in link_list if "/fund/fundDetail.nhn?fundCd=" in l]
+            ticker_list.extend(link_list)
+        else:
+            break
+
+    df_ticker = pd.DataFrame(zip(date_list, ticker_list))
+    df_ticker.columns = ['sdate', 'ticker']
+    df_ticker['sdate'] = pd.to_datetime(df_ticker['sdate'], format='%Y.%m.%d')
+
+    t = datetime.today()
+    y, m = t.year, t.month
+
+    df_ticker['n_months'] = [(y - d.year)*12 + (m - d.month) for d in df_ticker['sdate']]
+    df_ticker = df_ticker.set_index('sdate')
+
+    return df_ticker
