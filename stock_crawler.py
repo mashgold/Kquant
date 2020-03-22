@@ -136,13 +136,13 @@ def get_fng_snapshot(ticker):
 
 	df_yearly = snapshot_tables[11]
 	df_yearly = df_yearly.set_index(df_yearly.columns[0])
-	df_yearly = df_yearly.loc[['매출액', '영업이익', '지배주주순이익', 'ROE']]
+	df_yearly = df_yearly.loc[['매출액', '영업이익', '지배주주순이익', 'ROE', 'BPS', 'DPS']]
 	df_yearly = df_yearly.T.reset_index(level=0, drop=True)
 	df_yearly['type'] = 'Y'
 
 	df_quaterly = snapshot_tables[12]
 	df_quaterly = df_quaterly.set_index(df_quaterly.columns[0])
-	df_quaterly = df_quaterly.loc[['매출액', '영업이익', '지배주주순이익', 'ROE']]
+	df_quaterly = df_quaterly.loc[['매출액', '영업이익', '지배주주순이익', 'ROE', 'BPS', 'DPS']]
 	df_quaterly = df_quaterly.T.reset_index(level=0, drop=True)
 	df_quaterly['type'] = 'Q'
 
@@ -156,14 +156,16 @@ def get_fng_snapshot(ticker):
 						 '매출액': 'revenue',
 						 '영업이익': 'opm',
 						 '지배주주순이익': 'earning',
-						 'ROE': 'roe'}))
+						 'ROE': 'roe',
+						 'BPS': 'bps',
+						 'DPS': 'dps'}))
 
 	df['r3'] = [td[-3::] for td in df.tdate]
 	df['is_forecast'] = 0
 	df.loc[df['r3'] == "(E)", ['is_forecast']] = 1
 	df['ym'] = [td[:7] for td in df.tdate]
 	df['tdate'] = [fix_ymd(ym) for ym in df.ym]
-	df = df.loc[:, ['ticker', 'tdate', 'revenue', 'opm', 'earning', 'roe', 'type', 'is_forecast']]
+	df = df.loc[:, ['ticker', 'tdate', 'revenue', 'opm', 'earning', 'roe', 'bps', 'dps', 'type', 'is_forecast']]
 
 	return df
 
@@ -254,7 +256,8 @@ def get_fng_consensus(ticker):
 	df.columns = columns
 	df['source'] = l_list
 	df['tdate'] = c_list
-	columns_ordered = ['source', 'tdate', 'ct_price', 'lt_price', 'change_ratio', 'opinion', 'l_opinion']
+	df['ticker'] = ticker
+	columns_ordered = ['ticker', 'source', 'tdate', 'ct_price', 'lt_price', 'change_ratio', 'opinion', 'l_opinion']
 	df = df[columns_ordered].dropna()
 
 	return df
