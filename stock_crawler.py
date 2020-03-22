@@ -136,13 +136,13 @@ def get_fng_snapshot(ticker):
 
 	df_yearly = snapshot_tables[11]
 	df_yearly = df_yearly.set_index(df_yearly.columns[0])
-	df_yearly = df_yearly.loc[['매출액', '영업이익', '지배주주순이익', 'ROE', 'BPS', 'DPS']]
+	df_yearly = df_yearly.loc[['매출액', '영업이익', '지배주주순이익', 'ROE', 'BPS(원)', 'DPS(원)']]
 	df_yearly = df_yearly.T.reset_index(level=0, drop=True)
 	df_yearly['type'] = 'Y'
 
 	df_quaterly = snapshot_tables[12]
 	df_quaterly = df_quaterly.set_index(df_quaterly.columns[0])
-	df_quaterly = df_quaterly.loc[['매출액', '영업이익', '지배주주순이익', 'ROE', 'BPS', 'DPS']]
+	df_quaterly = df_quaterly.loc[['매출액', '영업이익', '지배주주순이익', 'ROE', 'BPS(원)', 'DPS(원)']]
 	df_quaterly = df_quaterly.T.reset_index(level=0, drop=True)
 	df_quaterly['type'] = 'Q'
 
@@ -157,8 +157,8 @@ def get_fng_snapshot(ticker):
 						 '영업이익': 'opm',
 						 '지배주주순이익': 'earning',
 						 'ROE': 'roe',
-						 'BPS': 'bps',
-						 'DPS': 'dps'}))
+						 'BPS(원)': 'bps',
+						 'DPS(원)': 'dps'}))
 
 	df['r3'] = [td[-3::] for td in df.tdate]
 	df['is_forecast'] = 0
